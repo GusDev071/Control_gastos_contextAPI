@@ -7,7 +7,8 @@ export type BudgetActions =
     {  type: 'close-modal' }|
     {  type: 'add-expense', payload:{expense: DraftExpense}}|
     {  type: 'remove-expense', payload: {id:Expense['id']}}|
-    {  type: 'get-expense-by-id', payload:{id:Expense['id']}}
+    {  type: 'get-expense-by-id', payload:{id:Expense['id']}}|
+    {  type: 'update-expense', payload: {expense:Expense}}
 
 export type BudgetState = {
     budget: number
@@ -16,10 +17,22 @@ export type BudgetState = {
     editingId: Expense['id']
 }
 
+
+//para que funcionen debemos agregarlos en el app.tsx con useEffect
+const initialBudget = () : number =>{
+    const localStorageBudget = localStorage.getItem('budget')
+    return localStorageBudget ? +localStorageBudget : 0
+}
+
+const initialExpenses = () : Expense[] =>{
+    const localStorageExpense = localStorage.getItem('expenses')
+    return localStorageExpense ? JSON.parse(localStorageExpense) : []
+}
+
 export const initialState : BudgetState = {
-    budget:0,
+    budget:initialBudget(),
     modal: false,
-    expenses: [],
+    expenses: initialExpenses(),
     editingId: ''
 }
 
@@ -49,7 +62,8 @@ export const  budgetReducer = (
     if(action.type === 'close-modal'){
         return {
             ...state,
-            modal:false
+            modal:false,
+            editingId: ''
         }
     }
     if(action.type === 'add-expense'){
@@ -72,6 +86,16 @@ export const  budgetReducer = (
             ...state,
             editingId: action.payload.id,
             modal: true
+        }
+    }
+    if(action.type === 'update-expense'){
+        return{
+            ...state,
+            expenses: state.expenses.map((expense) =>  (expense.id === action.payload.expense.id ?
+                action.payload.expense : expense
+            )),
+            modal:false,
+            editingId: ''
         }
     }
 
